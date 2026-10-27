@@ -37,7 +37,7 @@ toggleButton.Name = "ToggleIcon"
 toggleButton.Size = UDim2.new(0, 55, 0, 55)
 toggleButton.Position = UDim2.new(0, 30, 0, 200)
 toggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-toggleButton.TextColor3 = Color3.fromRGB(255, 100, 0) -- Aksen warna oranye ala Halloween/SuperShoyo
+toggleButton.TextColor3 = Color3.fromRGB(255, 100, 0)
 toggleButton.TextSize = 13
 toggleButton.Font = Enum.Font.SourceSansBold
 toggleButton.Text = "SHOYO"
@@ -101,7 +101,7 @@ local function createMenuButton(name, posY, callback)
     end)
 end
 
--- Fungsi Pembuat Tombol Teleport (Aksi Sekali Klik)
+-- Fungsi Pembuat Tombol Teleport
 local function createTeleportButton(name, posY, targetPosition)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0, 220, 0, 30)
@@ -145,7 +145,6 @@ createMenuButton("Auto Fishing", 210, function(state)
     getgenv().SuperShoyoConfig.Fishing = state
 end)
 
--- Tombol Teleport Lokasi Penting di Storage Hunter
 local tpLabel = Instance.new("TextLabel")
 tpLabel.Size = UDim2.new(1, 0, 0, 25)
 tpLabel.Position = UDim2.new(0, 0, 0, 255)
@@ -156,12 +155,10 @@ tpLabel.Font = Enum.Font.SourceSansBold
 tpLabel.Text = "--- TELEPORT LOCATIONS ---"
 tpLabel.Parent = mainFrame
 
--- Contoh Titik Teleport (Koordinat bisa disesuaikan dengan posisi map game aslinya)
 createTeleportButton("Auction Area", 285, CFrame.new(0, 5, 0))
 createTeleportButton("Shop / Storage", 320, CFrame.new(50, 5, 50))
 createTeleportButton("Fishing Spot", 355, CFrame.new(-100, 5, 100))
 
--- Tombol Close Menu
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 220, 0, 30)
 closeBtn.Position = UDim2.new(0, 10, 0, 400)
@@ -180,9 +177,7 @@ toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Visible = not mainFrame.Visible
 end)
 
-
---// LOGIKA SISTEM UTAMA (SAFEGUARDS & EXECUTION)
-
+--// LOGIKA SISTEM UTAMA
 local remoteFolder = ReplicatedStorage:FindFirstChild("Remotes") or ReplicatedStorage:FindFirstChild("Events")
 local bidRemote = remoteFolder and (remoteFolder:FindFirstChild("Bid") or remoteFolder:FindFirstChild("PlaceBid"))
 
@@ -206,23 +201,18 @@ local function getNearestContainer()
     return nearest
 end
 
--- 1. Sistem Instant Bid & Stop Bid (Smart Price Cap)
 task.spawn(function()
     while true do
         task.wait(0.1)
         if getgenv().SuperShoyoConfig.InstantBid then
             if getgenv().SuperShoyoConfig.StopBid then
-                -- Logika Stop Bid: Menahan harga agar tidak naik (berhenti di harga dasar/minimum)
-                -- Script otomatis mengirim nilai bid terendah/minimal agar harga tidak melonjak naik ke angka tinggi
                 if bidRemote and bidRemote:IsA("RemoteEvent") then
                     local targetContainer = getNearestContainer()
                     if targetContainer then
-                        -- Mengirimkan nominal minimum (misal: 400 atau harga dasar awal)
                         bidRemote:FireServer(targetContainer, 400) 
                     end
                 end
             else
-                -- Instant Bid Normal (Harga Maksimal / Cepat)
                 if bidRemote and bidRemote:IsA("RemoteEvent") then
                     local targetContainer = getNearestContainer()
                     if targetContainer then
@@ -234,7 +224,6 @@ task.spawn(function()
     end
 end)
 
--- 2. Instant Collect (Mobil Diam di Container)
 task.spawn(function()
     while true do
         task.wait(0.5)
@@ -266,24 +255,21 @@ task.spawn(function()
     end
 end)
 
--- 3. Event Halloween & Fishing Handler (Placeholder aman dari bug)
 task.spawn(function()
     while true do
         task.wait(1)
         if getgenv().SuperShoyoConfig.HalloweenEvent then
-            -- Logika otomatis mengambil atau mendeteksi item/spawn Halloween di Workspace
             local halloweenFolder = Workspace:FindFirstChild("HalloweenEvent") or Workspace:FindFirstChild("EventItems")
             if halloweenFolder then
                 for _, obj in ipairs(halloweenFolder:GetChildren()) do
                     if obj:IsA("BasePart") and humanoidRootPart then
-                        obj.CFrame = humanoidRootPart.CFrame -- Auto collect item event
+                        obj.CFrame = humanoidRootPart.CFrame
                     end
                 end
             end
         end
         
         if getgenv().SuperShoyoConfig.Fishing then
-            -- Logika auto fishing jika ada remote event pancingan di game
             local fishingRemote = remoteFolder and (remoteFolder:FindFirstChild("Fish") or remoteFolder:FindFirstChild("Catch"))
             if fishingRemote and fishingRemote:IsA("RemoteEvent") then
                 fishingRemote:FireServer()
